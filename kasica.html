@@ -64,6 +64,7 @@
     .hdr-left .app-sub{font-size:.7rem;opacity:.8;margin-top:1px}
     .user-chip{font-size:.72rem;background:rgba(255,255,255,.18);border-radius:20px;padding:4px 10px;text-align:right}
     .user-chip .role{font-size:.65rem;opacity:.8}
+    .btn-share{background:rgba(255,255,255,.18);border:none;color:#fff;border-radius:8px;padding:6px 10px;font-size:1rem;cursor:pointer;line-height:1}
 
     /* TABS */
     .tab-nav{display:flex;background:#fff;border-bottom:2px solid var(--border);position:sticky;top:55px;z-index:40;box-shadow:0 2px 6px rgba(0,0,0,.05);overflow-x:auto}
@@ -203,9 +204,12 @@
       <div class="app-title">&#127041; Kasica Ribice</div>
       <div class="app-sub">Zajednicki fond</div>
     </div>
-    <div class="user-chip">
-      <div id="hdr-name">...</div>
-      <div class="role" id="hdr-role">korisnik</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="btn-share" onclick="shareApp()" title="Podijeli aplikaciju">&#128279;</button>
+      <div class="user-chip">
+        <div id="hdr-name">...</div>
+        <div class="role" id="hdr-role">korisnik</div>
+      </div>
     </div>
   </header>
 
@@ -442,6 +446,24 @@ function showToast(msg, type){
   t._t = setTimeout(()=>t.classList.remove('show'), 3200);
 }
 const hideOverlay = () => document.getElementById('overlay').style.display = 'none';
+
+// ── SHARE ────────────────────────────────────────────────────
+const APP_URL = 'https://josa345.github.io/Kasica-Ribice/kasica.html';
+window.shareApp = function(){
+  if(navigator.share){
+    navigator.share({
+      title: 'Kasica Ribice',
+      text:  'Pridruzi se Kasici Ribice!',
+      url:   APP_URL
+    }).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(APP_URL).then(()=>{
+      showToast('Link kopiran u clipboard!','green');
+    }).catch(()=>{
+      prompt('Kopiraj ovaj link:', APP_URL);
+    });
+  }
+};
 
 // ── LOG ──────────────────────────────────────────────────────
 async function log(action, detail){
