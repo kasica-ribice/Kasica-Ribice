@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+  <title>Kasica Ribice</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --blue:#2c7be5;--blue-d:#1a56c4;
+      --red:#e74c3c;--red-d:#c0392b;
+      --green:#27ae60;--green-d:#1e8449;
+      --orange:#e67e22;--orange-d:#d35400;
+      --purple:#8e44ad;--purple-d:#6c3483;
+      --bg:#f0f4f8;--text:#2d3748;--muted:#718096;--border:#e2e8f0;
+    }
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-tap-highlight-color:transparent}
+
+    /* OVERLAY */
+    #overlay{position:fixed;inset:0;background:rgba(255,255,255,.93);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999}
+    .spinner{width:44px;height:44px;border:4px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    #overlay p{color:var(--muted);font-size:.9rem}
+
+    /* LOGIN */
+    #login-screen{display:none;min-height:100vh;background:linear-gradient(160deg,var(--blue),var(--blue-d));align-items:center;justify-content:center;padding:24px}
+    #login-screen.visible{display:flex}
+    .login-box{background:#fff;border-radius:20px;padding:32px 24px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+    .login-logo{text-align:center;margin-bottom:24px}
+    .login-logo .icon{font-size:3rem}
+    .login-logo h1{font-size:1.5rem;font-weight:800;margin-top:8px;color:var(--text)}
+    .login-logo p{font-size:.82rem;color:var(--muted);margin-top:4px}
+    .login-error{color:var(--red);font-size:.82rem;text-align:center;margin-top:10px;min-height:18px}
+
+    /* FORMS */
+    .form-group{margin-bottom:14px}
+    label{display:block;font-size:.78rem;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+    input[type=text],input[type=email],input[type=password],input[type=number],select{
+      width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;
+      font-size:.95rem;background:#f8fafc;color:var(--text);transition:border .2s;
+      -webkit-appearance:none;appearance:none;font-family:inherit}
+    input:focus,select:focus{outline:none;border-color:var(--blue);background:#fff}
+
+    /* BUTTONS */
+    .btn{width:100%;padding:13px;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;transition:transform .1s,opacity .2s}
+    .btn:active{transform:scale(.97)}
+    .btn:disabled{opacity:.6;pointer-events:none}
+    .btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;box-shadow:0 4px 12px rgba(44,123,229,.35)}
+    .btn-danger {background:linear-gradient(135deg,var(--red),var(--red-d));color:#fff;box-shadow:0 4px 12px rgba(231,76,60,.3)}
+    .btn-green  {background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;box-shadow:0 4px 12px rgba(39,174,96,.3)}
+    .btn-orange {background:linear-gradient(135deg,var(--orange),var(--orange-d));color:#fff;box-shadow:0 4px 12px rgba(230,126,34,.3)}
+    .btn-purple {background:linear-gradient(135deg,var(--purple),var(--purple-d));color:#fff;box-shadow:0 4px 12px rgba(142,68,173,.3)}
+    .btn-gray   {background:#f0f4f8;color:var(--text);border:1.5px solid var(--border)}
+    .btn-sm{width:auto;padding:6px 14px;font-size:.8rem;border-radius:8px}
+    .btn-del{background:#fde8e7;color:var(--red-d);border:none;border-radius:7px;padding:5px 10px;font-size:.78rem;font-weight:700;cursor:pointer}
+
+    /* APP */
+    #app{display:none}
+    #app.visible{display:block}
+
+    /* HEADER */
+    header{background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.2);position:sticky;top:0;z-index:50}
+    .hdr-left .app-title{font-size:1.05rem;font-weight:800}
+    .hdr-left .app-sub{font-size:.7rem;opacity:.8;margin-top:1px}
+    .user-chip{font-size:.72rem;background:rgba(255,255,255,.18);border-radius:20px;padding:4px 10px;text-align:right}
+    .user-chip .role{font-size:.65rem;opacity:.8}
+
+    /* TABS */
+    .tab-nav{display:flex;background:#fff;border-bottom:2px solid var(--border);position:sticky;top:55px;z-index:40;box-shadow:0 2px 6px rgba(0,0,0,.05);overflow-x:auto}
+    .tab-nav::-webkit-scrollbar{display:none}
+    .tab-btn{flex:1;min-width:56px;padding:11px 4px;border:none;background:transparent;font-size:.65rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s;white-space:nowrap}
+    .tab-btn .icon{font-size:1.15rem}
+    .tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);background:#f5f9ff}
+
+    /* CONTENT */
+    .tab-content{display:none;padding:14px;max-width:600px;margin:0 auto;padding-bottom:40px}
+    .tab-content.active{display:block}
+
+    /* CARDS */
+    .card{background:#fff;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+    .card h2{font-size:.92rem;font-weight:700;margin-bottom:12px;color:var(--blue)}
+
+    /* SUMMARY BOXES */
+    .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+    .sum-box{border-radius:12px;padding:14px;text-align:center;color:#fff}
+    .sum-box .lbl{font-size:.68rem;opacity:.85;margin-bottom:4px}
+    .sum-box .val{font-size:1.05rem;font-weight:800;word-break:break-all}
+    .full-box{border-radius:14px;padding:16px;text-align:center;color:#fff;margin-bottom:12px}
+    .full-box .lbl{font-size:.8rem;opacity:.85;margin-bottom:4px}
+    .full-box .val{font-size:1.9rem;font-weight:800}
+    .full-box .val span{font-size:1rem;opacity:.8}
+    .sb-blue  {background:linear-gradient(135deg,var(--blue),var(--blue-d));box-shadow:0 3px 10px rgba(44,123,229,.3)}
+    .sb-red   {background:linear-gradient(135deg,var(--red),var(--red-d));box-shadow:0 3px 10px rgba(231,76,60,.25)}
+    .sb-green {background:linear-gradient(135deg,var(--green),var(--green-d));box-shadow:0 3px 10px rgba(39,174,96,.3)}
+
+    /* LIST */
+    .list-item{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border)}
+    .list-item:last-child{border-bottom:none}
+    .list-item .info .name{font-weight:700;font-size:.88rem}
+    .list-item .info .meta{font-size:.72rem;color:var(--muted);margin-top:2px}
+    .list-item .right{display:flex;align-items:center;gap:7px;flex-shrink:0}
+    .badge{font-size:.8rem;font-weight:700;padding:4px 9px;border-radius:7px;white-space:nowrap}
+    .b-green {background:#e8f8ef;color:#1e8449}
+    .b-red   {background:#fde8e7;color:#c0392b}
+    .b-blue  {background:#e8f1fd;color:#1a56c4}
+    .b-gray  {background:#f0f4f8;color:#555}
+
+    /* FILTER */
+    .filter-row{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+    .filter-row label{margin-bottom:0;white-space:nowrap}
+    .filter-row select{flex:1}
+
+    /* EMPTY */
+    .empty{text-align:center;padding:28px 16px;color:var(--muted)}
+    .empty .ei{font-size:2.2rem;margin-bottom:8px}
+    .empty p{font-size:.85rem}
+
+    /* LOG */
+    .log-item{padding:10px 0;border-bottom:1px solid var(--border);font-size:.8rem}
+    .log-item:last-child{border-bottom:none}
+    .log-item .log-msg{color:var(--text);margin-bottom:3px}
+    .log-item .log-meta{color:var(--muted);font-size:.7rem}
+    .log-add {border-left:3px solid var(--green);padding-left:10px}
+    .log-del {border-left:3px solid var(--red);padding-left:10px}
+    .log-auth{border-left:3px solid var(--blue);padding-left:10px}
+    .log-sys {border-left:3px solid var(--orange);padding-left:10px}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;padding:11px 20px;border-radius:50px;font-size:.85rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);transition:transform .3s;z-index:9998;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+    .toast.show{transform:translateX(-50%) translateY(0)}
+    .toast.t-green{background:var(--green)}
+    .toast.t-red{background:var(--red)}
+    .toast.t-orange{background:var(--orange)}
+
+    /* MISC */
+    .divider{height:1px;background:var(--border);margin:14px 0}
+    .sec-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px}
+    .btn-row{display:flex;gap:10px;margin-top:10px}
+    .btn-row .btn{flex:1}
+    .user-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+    .user-row:last-child{border-bottom:none}
+    .u-name{font-weight:700;font-size:.88rem}
+    .u-email{font-size:.73rem;color:var(--muted);margin-top:1px}
+
+    /* PROFIL */
+    .profil-box{background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border-radius:14px;padding:20px;text-align:center;margin-bottom:14px}
+    .profil-box .pa{font-size:3rem;margin-bottom:8px}
+    .profil-box .pn{font-size:1.1rem;font-weight:800}
+    .profil-box .pe{font-size:.8rem;opacity:.8;margin-top:3px}
+    .profil-box .pr{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;padding:3px 10px;font-size:.72rem;margin-top:6px}
+
+    /* PRINT */
+    @media print{
+      body{background:#fff}
+      #overlay,#login-screen,header,.tab-nav,
+      #tab-unos,#tab-trosak,#tab-historija,#tab-admin,#tab-profil,
+      .toast,.filter-row,.btn-row,#print-hide{display:none!important}
+      #app,#app.visible,#tab-statistika,#tab-statistika.active{display:block!important;padding:0!important}
+      .tab-content{display:block!important;padding:0!important;max-width:100%!important}
+      .card{box-shadow:none!important;border:1px solid #ccc;break-inside:avoid;margin-bottom:10px}
+      .full-box,.sum-box{color:#000!important;background:#f5f5f5!important;box-shadow:none!important;border:1px solid #ccc}
+      #print-show{display:block!important}
+      #print-show-table,#print-show-table2{display:block!important}
+      .print-table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:8px}
+      .print-table th,.print-table td{border:1px solid #ccc;padding:7px 10px;text-align:left}
+      .print-table th{background:#f0f0f0;font-weight:700}
+    }
+    #print-show{display:none}
+    #print-show-table{display:none}
+    #print-show-table2{display:none}
+  </style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="overlay"><div class="spinner"></div><p>Ucitavanje...</p></div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="icon">&#127041;</div>
+      <h1>Kasica Ribice</h1>
+      <p>Evidencija zajednickog novca</p>
+    </div>
+    <div class="form-group">
+      <label>Email adresa</label>
+      <input type="email" id="login-email" placeholder="vas@email.com" autocomplete="email"/>
+    </div>
+    <div class="form-group">
+      <label>Lozinka</label>
+      <input type="password" id="login-pass" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;" autocomplete="current-password"/>
+    </div>
+    <button class="btn btn-primary" id="btn-login" onclick="doLogin()">Prijavi se</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <header>
+    <div class="hdr-left">
+      <div class="app-title">&#127041; Kasica Ribice</div>
+      <div class="app-sub">Zajednicki fond</div>
+    </div>
+    <div class="user-chip">
+      <div id="hdr-name">...</div>
+      <div class="role" id="hdr-role">korisnik</div>
+    </div>
+  </header>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('unos',this)"><span class="icon">&#10133;</span>Unos</button>
+    <button class="tab-btn" onclick="switchTab('statistika',this)"><span class="icon">&#128202;</span>Stat.</button>
+    <button class="tab-btn" onclick="switchTab('trosak',this)"><span class="icon">&#128722;</span>Trosak</button>
+    <button class="tab-btn" onclick="switchTab('historija',this)"><span class="icon">&#128196;</span>Log</button>
+    <button class="tab-btn" onclick="switchTab('profil',this)"><span class="icon">&#128100;</span>Profil</button>
+    <button class="tab-btn" id="tab-admin-btn" onclick="switchTab('admin',this)" style="display:none"><span class="icon">&#9881;</span>Admin</button>
+  </div>
+
+  <!-- UNOS -->
+  <div id="tab-unos" class="tab-content active">
+    <div class="card">
+      <h2>&#10133; Dodaj uplatu</h2>
+      <div class="form-group"><label>Ime i Prezime</label><input type="text" id="u-ime" placeholder="npr. Marko Markovic"/></div>
+      <div class="form-group">
+        <label>Odaberi Mjesec</label>
+        <select id="u-mjesec"><option value="">-- Odaberi mjesec --</option>
+          <option>Januar</option><option>Februar</option><option>Mart</option><option>April</option>
+          <option>Maj</option><option>Juni</option><option>Juli</option><option>August</option>
+          <option>Septembar</option><option>Oktobar</option><option>Novembar</option><option>Decembar</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Iznos (KM)</label><input type="number" id="u-iznos" placeholder="0.00" min="0" step="0.01"/></div>
+      <button class="btn btn-primary" onclick="dodajUplatu()">Dodaj uplatu</button>
+    </div>
+    <div class="card">
+      <h2>&#128336; Posljednji unosi</h2>
+      <div id="lista-unosa"><div class="empty"><div class="ei">&#128237;</div><p>Nema unesenih uplata.</p></div></div>
+    </div>
+  </div>
+
+  <!-- STATISTIKA -->
+  <div id="tab-statistika" class="tab-content">
+    <div id="print-show" style="margin-bottom:16px">
+      <h2 style="font-size:1.2rem;margin-bottom:4px" id="print-title">Kasica Ribice — Statistika</h2>
+      <p style="font-size:.8rem;color:#666" id="print-meta"></p>
+    </div>
+
+    <div class="summary-grid">
+      <div class="sum-box sb-blue"><div class="lbl">Ukupno uplaceno</div><div class="val" id="s-uplaceno">0,00 KM</div></div>
+      <div class="sum-box sb-red"><div class="lbl">Ukupno potroseno</div><div class="val" id="s-potroseno">0,00 KM</div></div>
+    </div>
+    <div class="full-box sb-green">
+      <div class="lbl">&#128188; Trenutno stanje (balans)</div>
+      <div class="val" id="s-balans">0,00 <span>KM</span></div>
+    </div>
+
+    <div class="filter-row" id="print-hide">
+      <label>Filtar:</label>
+      <select id="f-mjesec" onchange="renderStat()">
+        <option value="svi">Svi mjeseci</option>
+        <option>Januar</option><option>Februar</option><option>Mart</option><option>April</option>
+        <option>Maj</option><option>Juni</option><option>Juli</option><option>August</option>
+        <option>Septembar</option><option>Oktobar</option><option>Novembar</option><option>Decembar</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <h2>&#128101; Ko je uplatio</h2>
+      <div id="s-lista"><div class="empty"><div class="ei">&#128202;</div><p>Nema podataka.</p></div></div>
+      <div id="print-show-table">
+        <table class="print-table"><thead><tr><th>Ime i Prezime</th><th>Iznos (KM)</th></tr></thead>
+          <tbody id="ptb-uplate"></tbody>
+          <tfoot><tr><th>UKUPNO</th><th id="pt-ukupno-u">0,00 KM</th></tr></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>&#128722; Troskovi</h2>
+      <div id="s-troskovi-lista"><div class="empty"><div class="ei">&#129534;</div><p>Nema troskova.</p></div></div>
+      <div id="print-show-table2">
+        <table class="print-table"><thead><tr><th>Razlog</th><th>Mjesec</th><th>Iznos (KM)</th><th>Dodao</th></tr></thead>
+          <tbody id="ptb-troskovi"></tbody>
+          <tfoot><tr><th colspan="2">UKUPNO</th><th id="pt-ukupno-t">0,00 KM</th><th></th></tr></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="btn-row" id="print-hide">
+      <button class="btn btn-purple" onclick="printStatistika()">&#128438; Print / PDF</button>
+    </div>
+  </div>
+
+  <!-- TROSKOVI -->
+  <div id="tab-trosak" class="tab-content">
+    <div class="full-box sb-red">
+      <div class="lbl">&#128184; Ukupno potroseno</div>
+      <div class="val" id="t-ukupno">0,00 <span>KM</span></div>
+    </div>
+    <div class="card">
+      <h2>&#128722; Dodaj trosak</h2>
+      <div class="form-group"><label>Iznos (KM)</label><input type="number" id="t-iznos" placeholder="0.00" min="0" step="0.01"/></div>
+      <div class="form-group"><label>Razlog troska</label><input type="text" id="t-razlog" placeholder="npr. Kupovina namirnica"/></div>
+      <div class="form-group">
+        <label>Mjesec</label>
+        <select id="t-mjesec"><option value="">-- Odaberi mjesec --</option>
+          <option>Januar</option><option>Februar</option><option>Mart</option><option>April</option>
+          <option>Maj</option><option>Juni</option><option>Juli</option><option>August</option>
+          <option>Septembar</option><option>Oktobar</option><option>Novembar</option><option>Decembar</option>
+        </select>
+      </div>
+      <button class="btn btn-danger" onclick="dodajTrosak()">Dodaj trosak</button>
+    </div>
+    <div class="card">
+      <h2>&#128203; Lista troskova</h2>
+      <div id="lista-troskova"><div class="empty"><div class="ei">&#129534;</div><p>Nema unesenih troskova.</p></div></div>
+    </div>
+  </div>
+
+  <!-- HISTORIJA -->
+  <div id="tab-historija" class="tab-content">
+    <div class="card">
+      <h2>&#128196; Log aktivnosti</h2>
+      <p style="font-size:.76rem;color:var(--muted);margin-bottom:12px">Sve akcije se automatski biljeze sa imenom korisnika i vremenom.</p>
+      <div id="log-lista"><div class="empty"><div class="ei">&#128196;</div><p>Nema aktivnosti.</p></div></div>
+    </div>
+  </div>
+
+  <!-- PROFIL -->
+  <div id="tab-profil" class="tab-content">
+    <div class="profil-box">
+      <div class="pa">&#128100;</div>
+      <div class="pn" id="pi-name">...</div>
+      <div class="pe" id="pi-email">...</div>
+      <div class="pr" id="pi-role">korisnik</div>
+    </div>
+    <div class="card">
+      <h2>&#128274; Promjena lozinke</h2>
+      <div class="form-group"><label>Nova lozinka</label><input type="password" id="pp-new" placeholder="Min. 6 karaktera"/></div>
+      <div class="form-group"><label>Ponovi novu lozinku</label><input type="password" id="pp-new2" placeholder="Min. 6 karaktera"/></div>
+      <button class="btn btn-primary" onclick="promijeniLozinku()">Promijeni lozinku</button>
+    </div>
+    <div class="card">
+      <h2>&#128275; Odjava</h2>
+      <button class="btn btn-danger" onclick="doLogout()">Odjavi se</button>
+    </div>
+  </div>
+
+  <!-- ADMIN -->
+  <div id="tab-admin" class="tab-content">
+    <div class="card">
+      <h2>&#128101; Upravljanje korisnicima</h2>
+      <div id="admin-korisnici"><div class="empty"><div class="ei">&#8987;</div><p>Ucitavanje...</p></div></div>
+      <div class="divider"></div>
+      <div class="sec-label">Dodaj novog korisnika</div>
+      <div class="form-group"><label>Ime i Prezime</label><input type="text" id="a-ime" placeholder="Npr. Ana Anic"/></div>
+      <div class="form-group"><label>Email</label><input type="email" id="a-email" placeholder="ana@email.com"/></div>
+      <div class="form-group"><label>Lozinka</label><input type="password" id="a-pass" placeholder="Min. 6 karaktera"/></div>
+      <div class="form-group">
+        <label>Uloga</label>
+        <select id="a-role">
+          <option value="korisnik">Korisnik (samo pregled)</option>
+          <option value="urednik">Urednik (moze dodavati)</option>
+          <option value="admin">Administrator</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="kreirajKorisnika()">Kreiraj korisnika</button>
+    </div>
+
+    <div class="card">
+      <h2>&#128272; Reset lozinke korisnika</h2>
+      <p style="font-size:.78rem;color:var(--muted);margin-bottom:12px">Posalji email za reset lozinke — ne moras znati trenutnu lozinku korisnika.</p>
+      <div class="form-group"><label>Email korisnika</label><input type="email" id="reset-email" placeholder="korisnik@email.com"/></div>
+      <button class="btn btn-orange" onclick="resetLozinke()">&#128233; Posalji reset email</button>
+    </div>
+
+    <div class="card">
+      <h2>&#128190; Backup i Export</h2>
+      <p style="font-size:.78rem;color:var(--muted);margin-bottom:12px">Backup cuva sve podatke u Firebase. Export preuzima JSON fajl na uredaj.</p>
+      <div class="btn-row">
+        <button class="btn btn-green" onclick="napraviBackup()">&#128190; Backup sada</button>
+        <button class="btn btn-orange" onclick="exportData()">&#11015; Export JSON</button>
+      </div>
+      <div class="divider"></div>
+      <div class="sec-label">Import podataka</div>
+      <button class="btn btn-gray" onclick="document.getElementById('import-file').click()">&#11014; Import JSON</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)"/>
+      <div class="divider"></div>
+      <div class="sec-label">Sacuvani backupi (zadnjih 10)</div>
+      <div id="backup-lista"><div class="empty"><p>Nema backupa.</p></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+         createUserWithEmailAndPassword, updatePassword, sendPasswordResetEmail }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase, ref, push, set, get, remove, onValue, off,
+         query, orderByChild, limitToLast }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+// ── CONFIG ───────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey:"AIzaSyDGN20pJSHtPLN7k2o2IFWS6_JbiR1n-WI",
+  authDomain:"kasica-c8d38.firebaseapp.com",
+  databaseURL:"https://kasica-c8d38-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"kasica-c8d38",
+  storageBucket:"kasica-c8d38.firebasestorage.app",
+  messagingSenderId:"1088037015632",
+  appId:"1:1088037015632:web:96e017e860ea97fb650155"
+};
+const KASICA_ID = "ribice"; // fiksna kasica
+
+const fbApp = initializeApp(firebaseConfig);
+const auth  = getAuth(fbApp);
+const db    = getDatabase(fbApp);
+
+// ── STATE ────────────────────────────────────────────────────
+let CU = null, CRole = null, CName = null;
+let uplate = {}, troskovi = {};
+let listeners = [];
+
+// ── HELPERS ──────────────────────────────────────────────────
+const fmt = n => (isNaN(n)?0:n).toFixed(2).replace('.',',')+' KM';
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const ts  = () => { const d=new Date(); return d.getDate()+'.'+(d.getMonth()+1)+'.'+d.getFullYear()+'. '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
+const now = () => Date.now();
+
+function showToast(msg, type){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast'+(type?' t-'+type:'');
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>t.classList.remove('show'), 3200);
+}
+const hideOverlay = () => document.getElementById('overlay').style.display = 'none';
+
+// ── LOG ──────────────────────────────────────────────────────
+async function log(action, detail){
+  try {
+    await push(ref(db, 'log/'+KASICA_ID), {
+      action, detail,
+      user: CName||(CU?CU.email:'?'),
+      uid:  CU ? CU.uid : '',
+      time: ts(), ts: now()
+    });
+  } catch(e){}
+}
+
+// ── AUTH ─────────────────────────────────────────────────────
+window.doLogin = async function(){
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const btn   = document.getElementById('btn-login');
+  const err   = document.getElementById('login-error');
+  err.textContent = '';
+  if(!email||!pass){ err.textContent='Unesite email i lozinku.'; return; }
+  btn.disabled = true; btn.textContent = 'Prijava...';
+  try { await signInWithEmailAndPassword(auth, email, pass); }
+  catch(e){
+    btn.disabled = false; btn.textContent = 'Prijavi se';
+    err.textContent = 'Pogresna email adresa ili lozinka.';
+  }
+};
+document.getElementById('login-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') window.doLogin(); });
+
+window.doLogout = async function(){
+  await log('AUTH','Odjava iz aplikacije');
+  detachListeners();
+  await signOut(auth);
+};
+
+// ── AUTH STATE ───────────────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+  if(user){
+    CU = user;
+    const snap = await get(ref(db,'users/'+user.uid));
+    if(snap.exists()){
+      const p = snap.val();
+      CRole = p.role||'korisnik';
+      CName = p.name||user.email;
+    } else {
+      // prvi korisnik = admin
+      CRole = 'admin'; CName = user.email;
+      await set(ref(db,'users/'+user.uid),{name:user.email,role:'admin',email:user.email});
+    }
+    document.getElementById('hdr-name').textContent  = CName;
+    document.getElementById('hdr-role').textContent  = CRole;
+    document.getElementById('pi-name').textContent   = CName;
+    document.getElementById('pi-email').textContent  = user.email;
+    document.getElementById('pi-role').textContent   = CRole;
+    if(CRole==='admin') document.getElementById('tab-admin-btn').style.display='';
+    document.getElementById('login-screen').classList.remove('visible');
+    document.getElementById('app').classList.add('visible');
+    hideOverlay();
+    await log('AUTH','Prijava u aplikaciju');
+    attachListeners();
+  } else {
+    CU = null; CRole = null; CName = null;
+    detachListeners();
+    document.getElementById('app').classList.remove('visible');
+    hideOverlay();
+    document.getElementById('login-screen').classList.add('visible');
+    document.getElementById('btn-login').disabled = false;
+    document.getElementById('btn-login').textContent = 'Prijavi se';
+  }
+});
+
+// ── LISTENERS ────────────────────────────────────────────────
+function attachListeners(){
+  const uR = ref(db,'kasice_data/'+KASICA_ID+'/uplate');
+  const tR = ref(db,'kasice_data/'+KASICA_ID+'/troskovi');
+  onValue(uR, snap=>{ uplate=snap.val()||{}; renderUnosi(); renderStat(); });
+  onValue(tR, snap=>{ troskovi=snap.val()||{}; renderTroskovi(); renderStat(); });
+  listeners = [{r:uR},{r:tR}];
+}
+function detachListeners(){
+  listeners.forEach(l=>off(l.r));
+  listeners = [];
+  uplate = {}; troskovi = {};
+}
+
+// ── TABS ─────────────────────────────────────────────────────
+window.switchTab = function(name, btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='statistika') renderStat();
+  if(name==='historija')  renderHistorija();
+  if(name==='admin')      renderAdmin();
+};
+
+// ── UPLATE ───────────────────────────────────────────────────
+window.dodajUplatu = async function(){
+  if(CRole==='korisnik'){ showToast('Nemate dozvolu za dodavanje.','red'); return; }
+  const ime = document.getElementById('u-ime').value.trim();
+  const mj  = document.getElementById('u-mjesec').value;
+  const iz  = parseFloat(document.getElementById('u-iznos').value);
+  if(!ime)       { showToast('Unesite ime i prezime!','red'); return; }
+  if(!mj)        { showToast('Odaberite mjesec!','red'); return; }
+  if(!iz||iz<=0) { showToast('Unesite ispravan iznos!','red'); return; }
+  try{
+    await push(ref(db,'kasice_data/'+KASICA_ID+'/uplate'),
+      {ime, mjesec:mj, iznos:iz, datum:ts(), addedBy:CName, uid:CU.uid, ts:now()});
+    await log('UPLATA_DODANA', ime+' — '+fmt(iz)+' ('+mj+')');
+    document.getElementById('u-ime').value='';
+    document.getElementById('u-mjesec').value='';
+    document.getElementById('u-iznos').value='';
+    showToast('Uplata uspjesno dodana!','green');
+  } catch(e){ showToast('Greska: '+e.message,'red'); }
+};
+
+window.obrisiUplatu = async function(id){
+  if(CRole!=='admin'){ showToast('Samo administrator moze brisati.','red'); return; }
+  const u = uplate[id]; if(!u) return;
+  if(!confirm('Obrisati uplatu za '+u.ime+' ('+fmt(u.iznos)+')?')) return;
+  try{
+    await remove(ref(db,'kasice_data/'+KASICA_ID+'/uplate/'+id));
+    await log('UPLATA_OBRISANA', u.ime+' — '+fmt(u.iznos)+' ('+u.mjesec+')');
+    showToast('Uplata obrisana.','red');
+  } catch(e){ showToast('Greska: '+e.message,'red'); }
+};
+
+function renderUnosi(){
+  const cont = document.getElementById('lista-unosa');
+  const arr  = Object.entries(uplate).map(([id,v])=>({...v,id})).sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,20);
+  if(!arr.length){ cont.innerHTML='<div class="empty"><div class="ei">&#128237;</div><p>Nema unesenih uplata.</p></div>'; return; }
+  const canDel = CRole==='admin';
+  cont.innerHTML = arr.map(u=>`
+    <div class="list-item">
+      <div class="info"><div class="name">${esc(u.ime)}</div><div class="meta">${esc(u.mjesec)} &middot; ${esc(u.datum)} &middot; <em>${esc(u.addedBy||'')}</em></div></div>
+      <div class="right"><span class="badge b-green">${fmt(u.iznos)}</span>${canDel?`<button class="btn-del" onclick="obrisiUplatu('${u.id}')">&#10005;</button>`:''}</div>
+    </div>`).join('');
+}
+
+// ── STATISTIKA ───────────────────────────────────────────────
+window.renderStat = function(){
+  const f  = document.getElementById('f-mjesec')?document.getElementById('f-mjesec').value:'svi';
+  const fU = Object.values(uplate).filter(u=>f==='svi'||u.mjesec===f);
+  const fT = Object.values(troskovi).filter(t=>f==='svi'||t.mjesec===f);
+  const ukU = fU.reduce((s,u)=>s+u.iznos,0);
+  const ukT = fT.reduce((s,t)=>s+t.iznos,0);
+  const allU = Object.values(uplate).reduce((s,u)=>s+u.iznos,0);
+  const allT = Object.values(troskovi).reduce((s,t)=>s+t.iznos,0);
+  const bal  = allU - allT;
+
+  document.getElementById('s-uplaceno').textContent = fmt(ukU);
+  document.getElementById('s-potroseno').textContent = fmt(ukT);
+  document.getElementById('s-balans').innerHTML = bal.toFixed(2).replace('.',',')+' <span>KM</span>';
+
+  // Po osobi
+  const grp = {};
+  fU.forEach(u=>{ grp[u.ime]=(grp[u.ime]||0)+u.iznos; });
+  const eu = Object.entries(grp).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('s-lista').innerHTML = eu.length
+    ? eu.map(([ime,iz])=>`<div class="list-item"><div class="info"><div class="name">${esc(ime)}</div><div class="meta">${f==='svi'?'Svi mjeseci':esc(f)}</div></div><span class="badge b-green">${fmt(iz)}</span></div>`).join('')
+    : '<div class="empty"><div class="ei">&#128202;</div><p>Nema podataka.</p></div>';
+
+  // Troskovi lista
+  const arrT = fT.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+  document.getElementById('s-troskovi-lista').innerHTML = arrT.length
+    ? arrT.map(t=>`<div class="list-item"><div class="info"><div class="name">${esc(t.razlog)}</div><div class="meta">${esc(t.mjesec)} &middot; ${esc(t.datum)}</div></div><span class="badge b-red">${fmt(t.iznos)}</span></div>`).join('')
+    : '<div class="empty"><div class="ei">&#129534;</div><p>Nema troskova.</p></div>';
+
+  // Print tablice
+  document.getElementById('ptb-uplate').innerHTML   = eu.map(([ime,iz])=>`<tr><td>${esc(ime)}</td><td>${fmt(iz)}</td></tr>`).join('');
+  document.getElementById('pt-ukupno-u').textContent = fmt(ukU);
+  document.getElementById('ptb-troskovi').innerHTML  = arrT.map(t=>`<tr><td>${esc(t.razlog)}</td><td>${esc(t.mjesec)}</td><td>${fmt(t.iznos)}</td><td>${esc(t.addedBy||'')}</td></tr>`).join('');
+  document.getElementById('pt-ukupno-t').textContent = fmt(ukT);
+  document.getElementById('print-title').textContent = 'Kasica Ribice — '+(f==='svi'?'Svi mjeseci':f);
+  document.getElementById('print-meta').textContent  = 'Generirano: '+ts()+' | Balans: '+fmt(bal);
+};
+
+window.printStatistika = function(){
+  renderStat();
+  document.getElementById('print-show').style.display        = 'block';
+  document.getElementById('print-show-table').style.display  = 'block';
+  document.getElementById('print-show-table2').style.display = 'block';
+  window.print();
+  setTimeout(()=>{
+    document.getElementById('print-show').style.display        = 'none';
+    document.getElementById('print-show-table').style.display  = 'none';
+    document.getElementById('print-show-table2').style.display = 'none';
+  }, 1000);
+};
+
+// ── TROSKOVI ─────────────────────────────────────────────────
+window.dodajTrosak = async function(){
+  if(CRole==='korisnik'){ showToast('Nemate dozvolu za dodavanje.','red'); return; }
+  const iz = parseFloat(document.getElementById('t-iznos').value);
+  const rz = document.getElementById('t-razlog').value.trim();
+  const mj = document.getElementById('t-mjesec').value;
+  if(!iz||iz<=0) { showToast('Unesite ispravan iznos!','red'); return; }
+  if(!rz)        { showToast('Unesite razlog troska!','red'); return; }
+  if(!mj)        { showToast('Odaberite mjesec!','red'); return; }
+  try{
+    await push(ref(db,'kasice_data/'+KASICA_ID+'/troskovi'),
+      {iznos:iz, razlog:rz, mjesec:mj, datum:ts(), addedBy:CName, uid:CU.uid, ts:now()});
+    await log('TROSAK_DODAN', rz+' — '+fmt(iz)+' ('+mj+')');
+    document.getElementById('t-iznos').value='';
+    document.getElementById('t-razlog').value='';
+    document.getElementById('t-mjesec').value='';
+    showToast('Trosak uspjesno dodan!','green');
+  } catch(e){ showToast('Greska: '+e.message,'red'); }
+};
+
+window.obrisiTrosak = async function(id){
+  if(CRole!=='admin'){ showToast('Samo administrator moze brisati.','red'); return; }
+  const t = troskovi[id]; if(!t) return;
+  if(!confirm('Obrisati trosak: '+t.razlog+' ('+fmt(t.iznos)+')?')) return;
+  try{
+    await remove(ref(db,'kasice_data/'+KASICA_ID+'/troskovi/'+id));
+    await log('TROSAK_OBRISAN', t.razlog+' — '+fmt(t.iznos)+' ('+t.mjesec+')');
+    showToast('Trosak obrisan.','red');
+  } catch(e){ showToast('Greska: '+e.message,'red'); }
+};
+
+function renderTroskovi(){
+  const uk   = Object.values(troskovi).reduce((s,t)=>s+t.iznos,0);
+  document.getElementById('t-ukupno').innerHTML = uk.toFixed(2).replace('.',',')+' <span>KM</span>';
+  const arr  = Object.entries(troskovi).map(([id,v])=>({...v,id})).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  const cont = document.getElementById('lista-troskova');
+  if(!arr.length){ cont.innerHTML='<div class="empty"><div class="ei">&#129534;</div><p>Nema unesenih troskova.</p></div>'; return; }
+  const canDel = CRole==='admin';
+  cont.innerHTML = arr.map(t=>`
+    <div class="list-item">
+      <div class="info"><div class="name">${esc(t.razlog)}</div><div class="meta">${esc(t.mjesec)} &middot; ${esc(t.datum)} &middot; <em>${esc(t.addedBy||'')}</em></div></div>
+      <div class="right"><span class="badge b-red">${fmt(t.iznos)}</span>${canDel?`<button class="btn-del" onclick="obrisiTrosak('${t.id}')">&#10005;</button>`:''}</div>
+    </div>`).join('');
+}
+
+// ── HISTORIJA ────────────────────────────────────────────────
+async function renderHistorija(){
+  const cont = document.getElementById('log-lista');
+  cont.innerHTML = '<div class="empty"><div class="ei">&#8987;</div><p>Ucitavanje...</p></div>';
+  try{
+    const q    = query(ref(db,'log/'+KASICA_ID), orderByChild('ts'), limitToLast(150));
+    const snap = await get(q);
+    if(!snap.exists()){ cont.innerHTML='<div class="empty"><div class="ei">&#128196;</div><p>Nema aktivnosti.</p></div>'; return; }
+    const logs = [];
+    snap.forEach(c=>logs.push(c.val()));
+    logs.reverse();
+    const tCls  = {UPLATA_DODANA:'log-add',UPLATA_OBRISANA:'log-del',TROSAK_DODAN:'log-add',TROSAK_OBRISAN:'log-del',AUTH:'log-auth',BACKUP:'log-sys'};
+    const tIcon = {UPLATA_DODANA:'&#10133;',UPLATA_OBRISANA:'&#10134;',TROSAK_DODAN:'&#128722;',TROSAK_OBRISAN:'&#128465;',AUTH:'&#128275;',BACKUP:'&#128190;'};
+    cont.innerHTML = logs.map(l=>`
+      <div class="log-item ${tCls[l.action]||'log-sys'}">
+        <div class="log-msg">${tIcon[l.action]||'&#9658;'} <strong>${esc(l.action)}</strong> — ${esc(l.detail)}</div>
+        <div class="log-meta">${esc(l.user)} &middot; ${esc(l.time)}</div>
+      </div>`).join('');
+  } catch(e){ cont.innerHTML='<div class="empty"><div class="ei">&#9888;</div><p>Greska pri ucitavanju.</p></div>'; }
+}
+
+// ── PROFIL ───────────────────────────────────────────────────
+window.promijeniLozinku = async function(){
+  const n1 = document.getElementById('pp-new').value;
+  const n2 = document.getElementById('pp-new2').value;
+  if(!n1||n1.length<6){ showToast('Lozinka mora imati min. 6 karaktera.','red'); return; }
+  if(n1!==n2)          { showToast('Lozinke se ne poklapaju!','red'); return; }
+  try{
+    await updatePassword(CU, n1);
+    await log('LOZINKA_PROMIJENJENA','Korisnik promijenio lozinku');
+    document.getElementById('pp-new').value='';
+    document.getElementById('pp-new2').value='';
+    showToast('Lozinka uspjesno promijenjena!','green');
+  } catch(e){
+    if(e.code==='auth/requires-recent-login')
+      showToast('Odjavite se i prijavite ponovo, pa pokusajte.','red');
+    else showToast('Greska: '+e.message,'red');
+  }
+};
+
+// ── ADMIN ────────────────────────────────────────────────────
+async function renderAdmin(){
+  if(CRole!=='admin') return;
+  const cont = document.getElementById('admin-korisnici');
+  cont.innerHTML = '<div class="empty"><div class="ei">&#8987;</div><p>Ucitavanje...</p></div>';
+  try{
+    const snap = await get(ref(db,'users'));
+    if(!snap.exists()){ cont.innerHTML='<div class="empty"><p>Nema korisnika.</p></div>'; return; }
+    const users = [];
+    snap.forEach(c=>users.push({...c.val(),uid:c.key}));
+    const rc = {admin:'b-red',urednik:'b-blue',korisnik:'b-gray'};
+    cont.innerHTML = users.map(u=>`
+      <div class="user-row">
+        <div><div class="u-name">${esc(u.name)}</div><div class="u-email">${esc(u.email)}</div></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="badge ${rc[u.role]||'b-gray'}">${esc(u.role)}</span>
+          ${u.uid!==CU.uid
+            ? `<button class="btn-del" onclick="obrisiKorisnika('${u.uid}','${esc(u.name)}')">&#10005;</button>`
+            : '<span style="font-size:.7rem;color:var(--muted)">Vi</span>'}
+        </div>
+      </div>`).join('');
+  } catch(e){ cont.innerHTML='<div class="empty"><p>Greska.</p></div>'; }
+  renderBackupiLista();
+}
+
+window.kreirajKorisnika = async function(){
+  if(CRole!=='admin') return;
+  const ime   = document.getElementById('a-ime').value.trim();
+  const email = document.getElementById('a-email').value.trim();
+  const pass  = document.getElementById('a-pass').value;
+  const role  = document.getElementById('a-role').value;
+  if(!ime||!email||!pass){ showToast('Popunite sva polja!','red'); return; }
+  if(pass.length<6)       { showToast('Lozinka mora imati min. 6 karaktera.','red'); return; }
+  try{
+    const sec  = initializeApp(firebaseConfig,'sec_'+now());
+    const secA = getAuth(sec);
+    const cred = await createUserWithEmailAndPassword(secA, email, pass);
+    const uid  = cred.user.uid;
+    await signOut(secA);
+    await set(ref(db,'users/'+uid),{name:ime,email,role});
+    await log('KORISNIK_KREIRAN', ime+' ('+email+') — uloga: '+role);
+    document.getElementById('a-ime').value='';
+    document.getElementById('a-email').value='';
+    document.getElementById('a-pass').value='';
+    showToast('Korisnik '+ime+' uspjesno kreiran!','green');
+    renderAdmin();
+  } catch(e){
+    let msg='Greska pri kreiranju.';
+    if(e.code==='auth/email-already-in-use') msg='Taj email je vec registrovan.';
+    if(e.code==='auth/invalid-email')        msg='Neispravna email adresa.';
+    showToast(msg,'red');
+  }
+};
+
+window.obrisiKorisnika = async function(uid, name){
+  if(!confirm('Obrisati profil korisnika '+name+'?')) return;
+  try{
+    await remove(ref(db,'users/'+uid));
+    await log('KORISNIK_OBRISAN', name);
+    showToast('Korisnik obrisan.','red');
+    renderAdmin();
+  } catch(e){ showToast('Greska: '+e.message,'red'); }
+};
+
+window.resetLozinke = async function(){
+  const email = document.getElementById('reset-email').value.trim();
+  if(!email){ showToast('Unesite email adresu!','red'); return; }
+  try{
+    await sendPasswordResetEmail(auth, email);
+    await log('RESET_LOZINKE','Reset email poslan na: '+email);
+    document.getElementById('reset-email').value='';
+    showToast('Reset email poslan na '+email,'green');
+  } catch(e){
+    let msg='Greska pri slanju.';
+    if(e.code==='auth/user-not-found') msg='Korisnik sa tim emailom ne postoji.';
+    if(e.code==='auth/invalid-email')  msg='Neispravna email adresa.';
+    showToast(msg,'red');
+  }
+};
+
+// ── BACKUP ───────────────────────────────────────────────────
+window.napraviBackup = async function(){
+  showToast('Pravljenje backupa...','');
+  try{
+    const snapU = await get(ref(db,'kasice_data/'+KASICA_ID));
+    const snapL = await get(ref(db,'log/'+KASICA_ID));
+    const snapP = await get(ref(db,'users'));
+    const data  = {
+      time:ts(), ts:now(), by:CName, kasica:KASICA_ID,
+      data:  snapU.val()||{},
+      log:   snapL.val()||{},
+      users: snapP.val()||{}
+    };
+    await set(ref(db,'backups/backup_'+now()), data);
+    await log('BACKUP','Backup kreiran: '+ts());
+    showToast('Backup uspjesno sacuvan!','green');
+    renderBackupiLista();
+  } catch(e){ showToast('Greska: '+e.message,'red'); }
+};
+
+async function renderBackupiLista(){
+  const cont = document.getElementById('backup-lista');
+  try{
+    const snap = await get(ref(db,'backups'));
+    if(!snap.exists()){ cont.innerHTML='<div class="empty"><p>Nema backupa.</p></div>'; return; }
+    const list = [];
+    snap.forEach(c=>list.push({...c.val(),id:c.key}));
+    list.sort((a,b)=>(b.ts||0)-(a.ts||0));
+    cont.innerHTML = list.slice(0,10).map(b=>`
+      <div class="list-item">
+        <div class="info"><div class="name">&#128190; Backup</div><div class="meta">${esc(b.time)} &middot; ${esc(b.by)}</div></div>
+        <button class="btn btn-gray btn-sm" onclick="downloadBackup('${b.id}')">&#11015;</button>
+      </div>`).join('');
+  } catch(e){ cont.innerHTML='<div class="empty"><p>Greska.</p></div>'; }
+}
+
+window.downloadBackup = async function(id){
+  try{
+    const snap = await get(ref(db,'backups/'+id));
+    if(!snap.exists()) return;
+    const data = snap.val();
+    const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'kasica-ribice-backup-'+data.time.replace(/[:.]/g,'-')+'.json'; a.click();
+    URL.revokeObjectURL(url);
+    showToast('Backup preuzet!','green');
+  } catch(e){ showToast('Greska: '+e.message,'red'); }
+};
+
+// ── EXPORT / IMPORT ──────────────────────────────────────────
+window.exportData = async function(){
+  try{
+    const snapD = await get(ref(db,'kasice_data/'+KASICA_ID));
+    const snapL = await get(ref(db,'log/'+KASICA_ID));
+    const data  = { exportedAt:ts(), exportedBy:CName, kasica:KASICA_ID, data:snapD.val()||{}, log:snapL.val()||{} };
+    const blob  = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const url   = URL.createObjectURL(blob);
+    const a     = document.createElement('a');
+    a.href = url; a.download = 'kasica-ribice-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+    URL.revokeObjectURL(url);
+    await log('EXPORT','Export JSON fajl');
+    showToast('Export uspjesan!','green');
+  } catch(e){ showToast('Greska: '+e.message,'red'); }
+};
+
+window.importData = async function(ev){
+  const file = ev.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async e=>{
+    try{
+      const d = JSON.parse(e.target.result);
+      if(!confirm('Importovati podatke iz "'+file.name+'"?\nOvo ce prepisati sve postojece uplate i troskove!'))
+        { ev.target.value=''; return; }
+      if(d.data) await set(ref(db,'kasice_data/'+KASICA_ID), d.data);
+      await log('IMPORT','Import iz fajla: '+file.name);
+      showToast('Import uspjesan!','green');
+      ev.target.value='';
+    } catch(ex){ showToast('Greska: Neispravan JSON fajl.','red'); ev.target.value=''; }
+  };
+  reader.readAsText(file);
+};
+</script>
+</body>
+</html>
