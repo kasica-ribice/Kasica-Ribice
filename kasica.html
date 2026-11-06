@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
   <title>Kasica Ribice</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127041;</text></svg>"/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐟</text></svg>"/>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -28,7 +28,7 @@
     #login-screen.visible{display:flex}
     .login-box{background:#fff;border-radius:20px;padding:32px 24px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
     .login-logo{text-align:center;margin-bottom:24px}
-    .login-logo .icon{font-size:3rem}
+    .login-logo .icon{font-size:5rem;line-height:1}
     .login-logo h1{font-size:1.5rem;font-weight:800;margin-top:8px;color:var(--text)}
     .login-logo p{font-size:.82rem;color:var(--muted);margin-top:4px}
     .login-error{color:var(--red);font-size:.82rem;text-align:center;margin-top:10px;min-height:18px}
@@ -153,23 +153,97 @@
 
     /* PRINT */
     @media print{
-      body{background:#fff}
+      @page { size: A4; margin: 1.5cm 1.8cm; }
+      *{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body{ background:#fff; font-size:11pt; color:#000; }
+
+      /* sakri sve osim statistike */
       #overlay,#login-screen,header,.tab-nav,
       #tab-unos,#tab-trosak,#tab-historija,#tab-admin,#tab-profil,
-      .toast,.filter-row,.btn-row,#print-hide{display:none!important}
-      #app,#app.visible,#tab-statistika,#tab-statistika.active{display:block!important;padding:0!important}
-      .tab-content{display:block!important;padding:0!important;max-width:100%!important}
-      .card{box-shadow:none!important;border:1px solid #ccc;break-inside:avoid;margin-bottom:10px}
-      .full-box,.sum-box{color:#000!important;background:#f5f5f5!important;box-shadow:none!important;border:1px solid #ccc}
-      #print-show{display:block!important}
-      #print-show-table,#print-show-table2{display:block!important}
-      .print-table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:8px}
-      .print-table th,.print-table td{border:1px solid #ccc;padding:7px 10px;text-align:left}
-      .print-table th{background:#f0f0f0;font-weight:700}
+      .toast,.filter-row,.btn-row,#print-hide,
+      .full-box, .summary-grid { display:none!important; }
+
+      #app,#app.visible{ display:block!important; }
+      #tab-statistika{ display:block!important; padding:0!important; max-width:100%!important; }
+      .tab-content{ display:block!important; padding:0!important; max-width:100%!important; }
+
+      /* ZAGLAVLJE DOKUMENTA */
+      #print-show{ display:block!important; margin-bottom:10pt; border-bottom:2pt solid #000; padding-bottom:8pt; }
+      #print-title{ font-size:16pt; font-weight:bold; margin:0 0 3pt 0; }
+      #print-meta{ font-size:9pt; color:#444; margin:0; }
+
+      /* KARTICE */
+      .card{
+        box-shadow:none!important;
+        border:none!important;
+        padding:0!important;
+        margin-bottom:14pt!important;
+        break-inside:avoid;
+      }
+      .card h2{
+        font-size:11pt;
+        font-weight:bold;
+        color:#000!important;
+        border-bottom:1pt solid #999;
+        padding-bottom:3pt;
+        margin-bottom:6pt;
+        text-transform:uppercase;
+        letter-spacing:.5pt;
+      }
+
+      /* SAZETAK BROJEVI — horizontalni red umjesto boxova */
+      #print-summary-row{ display:flex!important; gap:20pt; margin-bottom:10pt; }
+      #print-summary-row .ps-item{ flex:1; }
+      #print-summary-row .ps-label{ font-size:8pt; color:#666; text-transform:uppercase; letter-spacing:.4pt; }
+      #print-summary-row .ps-val{ font-size:13pt; font-weight:bold; color:#000; }
+
+      /* TABLICE */
+      #print-show-table,#print-show-table2{ display:block!important; }
+
+      .print-table{
+        width:100%;
+        border-collapse:collapse;
+        font-size:10pt;
+        margin-top:4pt;
+      }
+      .print-table th{
+        background:#f0f0f0!important;
+        font-weight:bold;
+        font-size:9pt;
+        text-transform:uppercase;
+        letter-spacing:.3pt;
+        padding:5pt 7pt;
+        border:1pt solid #bbb;
+        text-align:left;
+      }
+      .print-table td{
+        padding:4pt 7pt;
+        border:1pt solid #ddd;
+        font-size:10pt;
+        vertical-align:middle;
+      }
+      .print-table tr:nth-child(even) td{ background:#f9f9f9!important; }
+      .print-table tfoot th{
+        background:#e8e8e8!important;
+        font-weight:bold;
+        padding:5pt 7pt;
+        border:1pt solid #bbb;
+      }
+
+      /* lista stavki u kartici (bez print tablice) */
+      .list-item{ padding:3pt 0; border-bottom:0.5pt solid #ddd; font-size:10pt; }
+      .list-item .name{ font-weight:bold; }
+      .list-item .meta{ font-size:8.5pt; color:#555; }
+      .badge{ font-size:9pt; padding:1pt 5pt; border:0.5pt solid #ccc; border-radius:3pt; }
+
+      /* footer sa datumom */
+      #print-footer{ display:block!important; margin-top:14pt; padding-top:6pt; border-top:0.5pt solid #999; font-size:8pt; color:#666; text-align:center; }
     }
-    #print-show{display:none}
-    #print-show-table{display:none}
-    #print-show-table2{display:none}
+    #print-show{ display:none; }
+    #print-show-table{ display:none; }
+    #print-show-table2{ display:none; }
+    #print-summary-row{ display:none; }
+    #print-footer{ display:none; }
   </style>
 </head>
 <body>
@@ -181,7 +255,7 @@
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">
-      <div class="icon">&#127041;</div>
+      <div class="icon">🐟</div>
       <h1>Kasica Ribice</h1>
       <p>Evidencija zajednickog novca</p>
     </div>
@@ -202,7 +276,7 @@
 <div id="app">
   <header>
     <div class="hdr-left">
-      <div class="app-title">&#127041; Kasica Ribice</div>
+      <div class="app-title">🐟 Kasica Ribice</div>
       <div class="app-sub">Zajednicki fond</div>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
@@ -252,6 +326,13 @@
       <p style="font-size:.8rem;color:#666" id="print-meta"></p>
     </div>
 
+    <!-- PRINT SUMMARY ROW -->
+    <div id="print-summary-row">
+      <div class="ps-item"><div class="ps-label">Ukupno uplaceno</div><div class="ps-val" id="ps-uplaceno">0,00 KM</div></div>
+      <div class="ps-item"><div class="ps-label">Ukupno potroseno</div><div class="ps-val" id="ps-potroseno">0,00 KM</div></div>
+      <div class="ps-item"><div class="ps-label">Balans</div><div class="ps-val" id="ps-balans">0,00 KM</div></div>
+    </div>
+
     <div class="summary-grid">
       <div class="sum-box sb-blue"><div class="lbl">Ukupno uplaceno</div><div class="val" id="s-uplaceno">0,00 KM</div></div>
       <div class="sum-box sb-red"><div class="lbl">Ukupno potroseno</div><div class="val" id="s-potroseno">0,00 KM</div></div>
@@ -296,6 +377,9 @@
     <div class="btn-row" id="print-hide">
       <button class="btn btn-purple" onclick="printStatistika()">&#128438; Print / PDF</button>
     </div>
+
+    <!-- PRINT FOOTER -->
+    <div id="print-footer">Kasica Ribice &mdash; Generirano automatski &mdash; <span id="pf-time"></span></div>
   </div>
 
   <!-- TROSKOVI -->
@@ -641,18 +725,27 @@ window.renderStat = function(){
   document.getElementById('pt-ukupno-t').textContent = fmt(ukT);
   document.getElementById('print-title').textContent = 'Kasica Ribice — '+(f==='svi'?'Svi mjeseci':f);
   document.getElementById('print-meta').textContent  = 'Generirano: '+ts()+' | Balans: '+fmt(bal);
+  // print summary row
+  document.getElementById('ps-uplaceno').textContent = fmt(ukU);
+  document.getElementById('ps-potroseno').textContent = fmt(ukT);
+  document.getElementById('ps-balans').textContent   = fmt(bal);
 };
 
 window.printStatistika = function(){
   renderStat();
-  document.getElementById('print-show').style.display        = 'block';
-  document.getElementById('print-show-table').style.display  = 'block';
-  document.getElementById('print-show-table2').style.display = 'block';
+  document.getElementById('print-show').style.display         = 'block';
+  document.getElementById('print-summary-row').style.display  = 'flex';
+  document.getElementById('print-show-table').style.display   = 'block';
+  document.getElementById('print-show-table2').style.display  = 'block';
+  document.getElementById('print-footer').style.display       = 'block';
+  document.getElementById('pf-time').textContent              = ts();
   window.print();
   setTimeout(()=>{
-    document.getElementById('print-show').style.display        = 'none';
-    document.getElementById('print-show-table').style.display  = 'none';
-    document.getElementById('print-show-table2').style.display = 'none';
+    document.getElementById('print-show').style.display         = 'none';
+    document.getElementById('print-summary-row').style.display  = 'none';
+    document.getElementById('print-show-table').style.display   = 'none';
+    document.getElementById('print-show-table2').style.display  = 'none';
+    document.getElementById('print-footer').style.display       = 'none';
   }, 1000);
 };
 
